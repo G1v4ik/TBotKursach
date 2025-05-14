@@ -13,16 +13,17 @@ from bot.tools.Tool import UserTool
 import json
 
 
+msg = UserTool()
+
 
 def kb_start():
     kb = ReplyKeyboardBuilder()
 
     kb.button(
-        text=self.msg['kb_start']['student']
+        text=msg.user_keyboard['kb_start']['student']
     )
 
     kb.button(
-        text=self.msg['kb_start']['teacher']
+        text=msg.user_keyboard['kb_start']['teacher']
     )
-
     return kb.adjust(1,1).as_markup()

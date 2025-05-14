@@ -17,5 +17,9 @@ class UserTool:
     @property
     def user_answer(self):
         return self.msg_user['text_answer']
+    
+    @property
+    def user_keyboard(self):
+        return self.msg_user['text_kb']
 
 UserTools = UserTool()

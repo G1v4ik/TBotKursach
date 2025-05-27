@@ -9,9 +9,12 @@ from bot.handlers.user import router_handler_user
         StateFilter(None),
 )
 async def fsm_reg_user(
-        message = Message,
-        state = FSMContext, 
-        user = 'student' or 'teacher'):
+        message: Message,
+        user_type: str,
+        state = FSMContext):
+     
     await message.answer(
-        text= UserTools.user_answer['msg_reg_student'] if user == 'student' else UserTools.user_answer['msg_reg_teacher']
+        text = UserTools
+        .user_answer['msg_reg_student'] 
+        if user_type == 'student' else UserTools.user_answer['msg_reg_teacher']
     )

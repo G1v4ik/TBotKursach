@@ -1,11 +1,60 @@
-import json
+from yarl import URL
 
-import requests
-import pyotp
+from os import getenv
+from dotenv import load_dotenv
 
-class PressF:
+import httpx
 
-    def __init__(self, url, base_32):
-        self.url = url
-        self.token = pyotp.TOTP(base_32).now()
-    
+from bot.schames import schames
+
+
+class PressFClient:
+
+    def __init__(
+            self, base_url: URL
+    ):
+        self._base_url = base_url
+        self._client = httpx.AsyncClient()
+   
+
+    async def create(
+            self,
+            schames_input: schames.BaseModel,
+            endpoint: str
+    ) -> httpx.Response:
+        
+        resp = await self._client.post(
+            f"{self._base_url}{endpoint}",
+            json=schames_input.model_dump()
+        )
+        return resp
+
+    async def get(
+            self,
+            schames_output: schames.BaseModel,
+            endpoint: str,
+            id_object: int
+    ) -> httpx.Response:
+        
+        resp = await self._client.get(
+            f"{self._base_url}{endpoint}{id_object}"
+        )
+        
+        return resp
+
+
+    async def list(
+              self,
+              schames_output: schames.BaseModel,
+              endpoint: str
+    ) -> httpx.Response:
+         
+        resp = await self._client.get(
+            f"{self._base_url}{endpoint}"
+        )
+        return resp
+
+
+load_dotenv()
+base_url = getenv('BASE_URL')
+Client = PressFClient(base_url)

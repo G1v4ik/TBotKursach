@@ -8,8 +8,4 @@ from bot.keyboards.user import kb_start
 
 router_handler_user = Router()
 
-
-@router_handler_user.message(Command('start'))
-async def start_message(message: Message):
-    await message.answer(
-        UserTools.user_answer['msg_start'])
+...

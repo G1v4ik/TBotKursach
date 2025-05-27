@@ -2,7 +2,7 @@ from os import getenv
 import asyncio
 from dotenv import load_dotenv
 
-from aiogram import Bot, Dispatcher, html
+from aiogram import Bot, Dispatcher
 from aiogram.enums import ParseMode
 from aiogram.client.default import DefaultBotProperties
 from aiogram.methods import DeleteWebhook
@@ -36,5 +36,8 @@ async def main():
 
 
 if __name__ == "__main__":
-    print ("bot is running...")
-    asyncio.run(main())
+    try:
+        print ("bot is running...")
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        print('bot is stopped...')

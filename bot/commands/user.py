@@ -15,6 +15,23 @@ from bot.api import crud
 
 router_user_command = Router()
 
+async def user_is_reg_or_err(message):
+    if not await crud.is_user_reg(message.from_user.id):
+        try:
+            raise ValueError
+        except ValueError:
+            await message.answer('вы не зарегестрированы')
+
+
+async def user_isnt_reg_or_err(message):
+    if await crud.is_user_reg(message.from_user.id):
+        try:
+            raise ValueError
+        except ValueError:
+            await message.answer('вы зарегестрированы')
+
+
+    
 @router_user_command.message(Command('start'))
 async def start_message(message: Message):
     text = """
@@ -37,7 +54,9 @@ async def cmd_help(message: Message, command: CommandObject):
     text="""
 <b>/contact - связь с поддержкой
 /reg - для регистрации
-/groups - для плучения списка групп</b>
+/groups - для плучения списка групп
+/groupscreate [title] - создать группу
+/groupsjoin [id group] - вступить в группу</b>
 """
 
     await message.answer(text)
@@ -49,6 +68,7 @@ async def cmd_contact(message: Message):
 
 @router_user_command.message(Command('groups'))
 async def cmd_groups(message: Message):
+    await user_is_reg_or_err(message)
     text = f"""
 <b>Список Групп по теории\n
 [id] | [title] | [*]\n
@@ -76,6 +96,7 @@ async def cmd_groups(message: Message):
 
 @router_user_command.message(Command('groupsjoin'))
 async def cmd_groups_join(message: Message, command: CommandObject):
+    await user_is_reg_or_err(message)
     try:
         id_group_learn:int = int(command.args.split()[0])
 
@@ -96,6 +117,7 @@ async def cmd_groups_join(message: Message, command: CommandObject):
 
 @router_user_command.message(Command('groupscreate'))
 async def cmd_groups_create(message: Message, command: CommandObject):
+    await user_is_reg_or_err(message)
     data = {
         "tg_id_user": message.from_user.id,
         "title": command.args

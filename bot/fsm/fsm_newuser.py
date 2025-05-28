@@ -17,16 +17,21 @@ async def user_is_register(message, state):
         message.from_user.id
     ) is not None:
         return True
-    
+
+
+async def user_isnt_reg_or_err(message):
+    if await crud.is_user_reg(message.from_user.id):
+        try:
+            raise ValueError
+        except ValueError:
+            await message.answer('вы зарегестрированы')
+
+
 
 @form_router.message(Command('reg'))
 async def new_user(message: Message, state: FSMContext) -> None:
 
-
-    if await user_is_register(message, state):
-        await message.answer("Вы уже зарегистрированы")
-        await state.clear()
-        return 
+    await user_isnt_reg_or_err(message)
 
     text = """
 Укажите имя, фамилию и номер телефона
@@ -35,7 +40,7 @@ async def new_user(message: Message, state: FSMContext) -> None:
 Иванов 
 89990001122
 """
-
+    
     await state.set_state(FormCreateNewUser.telegram_id)
     await state.update_data(telegram_id=message.from_user.id)
     await state.set_state(FormCreateNewUser.name)

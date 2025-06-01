@@ -69,5 +69,5 @@ class PressFClient:
 
 
 load_dotenv()
-base_url = getenv('BASE_URL_API')
+base_url = getenv("BASE_URL_API_")
 Client = PressFClient(base_url)

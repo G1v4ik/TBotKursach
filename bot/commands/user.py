@@ -2,8 +2,7 @@ import json
 
 from aiogram import Router, F
 from aiogram.filters import (
-    Command, 
-    CommandObject,
+    Command,
     CommandStart
 )
 from aiogram.fsm.context import FSMContext
@@ -65,6 +64,9 @@ async def cmd_code(message: Message):
 @router_user_command.message(Command("qresponse"))
 async def cmd_question_admin(messages: Message):
     list_support_messages = await crud.get_list_support_message()
+    if list_support_messages == []:
+        await messages.answer("<b>[..Пусто..]</b>")
+
     for i in list_support_messages:
         await messages.answer(
             f"{i.username}\n{i.message}",
@@ -101,6 +103,7 @@ async def process_message(
     await state.set_state(None)
     send = await crud.send_support_message_from_user(data=schames.DS_support_new_message.model_validate_json(json.dumps(message_question)))
     await state.clear()
+    print(send)
     if send.status_code == 200:
         await message.answer("OK: Сообщение успешно доставлено")
     

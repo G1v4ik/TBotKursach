@@ -27,6 +27,7 @@ class PressFClient:
             f"{self._base_url}{endpoint}",
             json=schames_input.model_dump()
         )
+        print (f"{self._base_url}{endpoint}")
         return resp
 
     async def get(
@@ -53,8 +54,20 @@ class PressFClient:
             f"{self._base_url}{endpoint}"
         )
         return resp
+    
+
+    async def patch(
+                self,
+                id_message: int,
+                endpoint: str
+    ) -> httpx.Response:
+        resp = await self._client.patch(
+            f"{self._base_url}{endpoint}",
+            json={"id_message": id_message}
+        )
+        return resp
 
 
 load_dotenv()
-base_url = getenv('BASE_URL')
+base_url = getenv('BASE_URL_API')
 Client = PressFClient(base_url)

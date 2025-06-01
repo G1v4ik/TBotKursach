@@ -1,130 +1,108 @@
 import json
 
-from aiogram import Router
-from aiogram.filters import Command, CommandObject
+from aiogram import Router, F
+from aiogram.filters import (
+    Command, 
+    CommandObject,
+    CommandStart
+)
+from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
-from aiogram.methods.get_chat import GetChat
 
-from pydantic import ValidationError
-
-from bot.tools.Tool import UserTools
 from bot.schames import schames
-
 from bot.api import crud
+from bot import config
+from bot.fsm.forms_fsm import FormQuestion
+from bot.keyboards.user import resposnser_kb
 
 
 router_user_command = Router()
 
-async def user_is_reg_or_err(message):
-    if not await crud.is_user_reg(message.from_user.id):
-        try:
-            raise ValueError
-        except ValueError:
-            await message.answer('вы не зарегестрированы')
 
-
-async def user_isnt_reg_or_err(message):
-    if await crud.is_user_reg(message.from_user.id):
-        try:
-            raise ValueError
-        except ValueError:
-            await message.answer('вы зарегестрированы')
-
-
-    
-@router_user_command.message(Command('start'))
-async def start_message(message: Message):
+@router_user_command.message(CommandStart())
+async def cmd_start(message: Message):
     text = """
-<b>Привет!</b> 👋
+Привет, я бот помошник. 
+Я могу:
 
-Я — ваш помошник от сайта <s>pressf-drivingschool</s>
-Моя задача — сделать ваше взаимодействие с этим приложением более удобным и интересным. 
+/q - здесь вы можете задать любой вопрос по
+    автошколе
 
-Для полного списка команд
-
-<b>/help</b>
+/help - полный список команд
 
 """
-
     await message.answer(text)
 
-
 @router_user_command.message(Command('help'))
-async def cmd_help(message: Message, command: CommandObject):
-    text="""
-<b>/contact - связь с поддержкой
-/reg - для регистрации
-/groups - для плучения списка групп
-/groupscreate [title] - создать группу
-/groupsjoin [id group] - вступить в группу</b>
-"""
-
+async def cmd_help(message: Message):
+    text = (
+        "<b><i>[Список всех команд]</i>\n"
+        "/q - задать любой вопрос по автошколе\n"
+        "/url - ссылка на сайт\n"
+        "/code - ссылка на github\n"
+        "/qresponse - ответить на сообщения\n"
+        "/contact - контакты тех.поддержки\n"
+        "/help - [<i>вы тут</i>]</b>"
+    )
     await message.answer(text)
 
 
 @router_user_command.message(Command('contact'))
 async def cmd_contact(message: Message):
-    await message.answer("<a>https://t.me/Forgithe</a>")
+    await message.answer("https://t.me/Forgithe")
 
-@router_user_command.message(Command('groups'))
-async def cmd_groups(message: Message):
-    await user_is_reg_or_err(message)
-    text = f"""
-<b>Список Групп по теории\n
-[id] | [title] | [*]\n
-* - Вы в этой группе</b>\n
-"""
-# {[f" * <b>{i.id_grouplearn} | {i.title}</b>\n" for i in await crud.get_list_groupslearns()]}
 
-    user_in_group_learn = await crud.get_groups_by_tg_id(
-        message.from_user.id
+@router_user_command.message(Command('url'))
+async def cmd_url(message: Message):
+    await message.answer(config.URL_SITE)
+
+
+@router_user_command.message(Command("code"))
+async def cmd_code(message: Message):
+    await message.answer(config.URL_GITHUB)
+
+
+@router_user_command.message(Command("qresponse"))
+async def cmd_question_admin(messages: Message):
+    list_support_messages = await crud.get_list_support_message()
+    for i in list_support_messages:
+        await messages.answer(
+            f"{i.username}\n{i.message}",
+            reply_markup=resposnser_kb(
+                i.username, 
+                i.id_message,
+                i.telegram_id)
+        )
+
+@router_user_command.message(Command("q"))
+async def cmd_question(
+    message: Message, 
+    state: FSMContext
+):
+    await state.set_state(FormQuestion.telegram_id)
+    await state.update_data(
+        telegram_id=message.from_user.id
     )
-
-    for i in await crud.get_list_groupslearns():
-        
-        try:
-            if i.id_grouplearn == user_in_group_learn.id_grouplearn:
-                text += f"<b>{i.id_grouplearn} | {i.title} | [*]</b>\n"
-                continue
-        except AttributeError:
-            ...
-
-        text += f"<b>{i.id_grouplearn} | {i.title}</b>\n"
-
-    await message.answer(text)
-
-
-@router_user_command.message(Command('groupsjoin'))
-async def cmd_groups_join(message: Message, command: CommandObject):
-    await user_is_reg_or_err(message)
-    try:
-        id_group_learn:int = int(command.args.split()[0])
-
-    except ValueError:
-        await message.answer("/groupsjoin <b>[id groups learns] id must be int</b>")
-
-    data={
-            "tg_id_student":message.from_user.id,
-            "id_grouplearn":id_group_learn
-    }
-
-    await crud.join_groups_learn(
-        data=schames.DS_GroupsSchames.model_validate_json(json.dumps(data))
+    await state.set_state(FormQuestion.username)
+    await state.update_data(
+        username=message.from_user.username
     )
+    await state.set_state(FormQuestion.message)
+    await message.answer("Введите своё сообщение: ")
 
-    await message.answer("Вы успешно вступили в группу")
 
-
-@router_user_command.message(Command('groupscreate'))
-async def cmd_groups_create(message: Message, command: CommandObject):
-    await user_is_reg_or_err(message)
-    data = {
-        "tg_id_user": message.from_user.id,
-        "title": command.args
-    }
-
-    await crud.create_groups_learns(
-        schames.DS_GroupLearnsSchames.model_validate_json(json.dumps(data))
-    )
-
-    await message.answer(f"Вы успешно создали группу с названием:\n<b>{data['title']}</b>")
+@router_user_command.message(F.text, FormQuestion.message)
+async def process_message(
+    message: Message, 
+    state: FSMContext
+):
+    await state.update_data(message=message.text.lower())
+    message_question = await state.get_data()
+    await state.set_state(None)
+    send = await crud.send_support_message_from_user(data=schames.DS_support_new_message.model_validate_json(json.dumps(message_question)))
+    await state.clear()
+    if send.status_code == 200:
+        await message.answer("OK: Сообщение успешно доставлено")
+    
+    else:
+        await message.answer("Err: Ошибка, попробуйте позже")

@@ -1,38 +1,26 @@
-from os import getenv
 import asyncio
-from dotenv import load_dotenv
 
-from aiogram import Bot, Dispatcher
-from aiogram.enums import ParseMode
-from aiogram.client.default import DefaultBotProperties
+from aiogram import Dispatcher
+
 from aiogram.methods import DeleteWebhook
 
 from bot.routers import include_routers
 
-
-load_dotenv()
-
-TOKEN = getenv("TokenBot")
+from bot.bot import bot_support
 
 
 dp = Dispatcher()
 
 
 async def main():
-    bot = Bot(
-        token=TOKEN, 
-        default=DefaultBotProperties(
-            parse_mode=ParseMode.HTML
-            )
-        )
-
-    await bot(
+   
+    await bot_support(
         DeleteWebhook(drop_pending_updates=True)
         )
     
     await include_routers(dp=dp)
 
-    await dp.start_polling(bot)
+    await dp.start_polling(bot_support)
 
 
 if __name__ == "__main__":

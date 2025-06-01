@@ -1,29 +1,10 @@
-from aiogram.types import (
-    ReplyKeyboardMarkup, KeyboardButton,
-    InlineKeyboardMarkup, InlineKeyboardButton 
-)
-
-from aiogram.utils.keyboard import ReplyKeyboardBuilder, \
-    InlineKeyboardBuilder
+from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 
-from bot.tools.Tool import UserTool
-
-
-import json
-
-
-msg = UserTool()
-
-
-def kb_start():
-    kb = ReplyKeyboardBuilder()
-
+def resposnser_kb(username, id_message, telegram_id):
+    kb = InlineKeyboardBuilder()
     kb.button(
-        text=msg.user_keyboard['kb_start']['student']
+        text="Ответить", 
+        callback_data=f'response:{id_message}:{username}:{telegram_id}'
     )
-
-    kb.button(
-        text=msg.user_keyboard['kb_start']['teacher']
-    )
-    return kb.adjust(1,1).as_markup()
+    return kb.adjust(1).as_markup()

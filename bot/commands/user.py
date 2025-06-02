@@ -21,7 +21,7 @@ router_user_command = Router()
 @router_user_command.message(CommandStart())
 async def cmd_start(message: Message):
     text = """
-Привет, я бот помошник. 
+Привет, я бот помощник 
 Я могу:
 
 /q - здесь вы можете задать любой вопрос по
